@@ -44,3 +44,7 @@ __pycache__
 *.py[cod]
 venv
 .venv
+
+# Large data (use Supabase import or download separately)
+mens_fashion_master_FINAL.csv
+data_dictionary.csv

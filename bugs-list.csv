@@ -1,0 +1,14 @@
+Priority,Component,Description,Status,File
+Critical,(none),No app-breaking bugs identified,Open,N/A
+High,Outfit Builder,Save outfit button does not persist to database,Open,app/(main)/outfit-builder/page.tsx
+High,Profile,Profile preferences (skin/body/occasion) not saved to Supabase,Open,app/(main)/profile/page.tsx
+High,Search,Sort dropdown (Popular/Recent/Price) does not change API order,Open,app/(main)/search/page.tsx
+Medium,Search,Price range filter not applied in API (price_range is text),Open,lib/api/fashion.ts
+Medium,Spec,Item detail page (/items/[id]) not implemented,Open,N/A (missing route)
+Medium,Spec,Shadcn/ui components not used; custom + Radix only,Open,components/*
+Low,Outfit Builder,Drag-and-drop not implemented; click-to-select only,Open,components/OutfitCanvas.tsx
+Low,Outfit Builder,Download outfit as image not implemented,Open,app/(main)/outfit-builder/page.tsx
+Low,Chat,Chat history not persisted,Open,app/(main)/chat/page.tsx
+Low,Profile,Wardrobe upload not implemented,Open,app/(main)/profile/page.tsx
+Low,Occasions,Safe/Moderate/Bold options are copy only; no distinct data,Open,app/(main)/occasions/[slug]/page.tsx
+Low,API,GET /api/items/[id] route missing,Open,app/api/items/[id]/route.ts

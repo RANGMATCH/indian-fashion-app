@@ -1,0 +1,45 @@
+{
+  "auditDate": "2025-02-15",
+  "appVersion": "0.1.0",
+  "summary": {
+    "grade": "B",
+    "overallScore": 80,
+    "notes": "Build succeeds; no server-side search or ISR. Client-side fetch + React Query used. Actual load times require runtime measurement (Lighthouse or devtools)."
+  },
+  "bundleSize": {
+    "unit": "KB",
+    "totalJs": "Run: npm run build and check .next/static/chunks",
+    "firstLoadJs": "See build output for first-load JS size",
+    "note": "Next 14 default splitting; no custom analysis run in this audit."
+  },
+  "loadTimes": {
+    "landingPageMs": null,
+    "searchResultsMs": null,
+    "outfitBuilderMs": null,
+    "averageApiResponseMs": null,
+    "note": "Fill with Lighthouse or Network tab measurements."
+  },
+  "coreWebVitals": {
+    "LCP": null,
+    "FID": null,
+    "CLS": null,
+    "note": "Run Lighthouse on deployed or dev build to populate."
+  },
+  "optimizationOpportunities": [
+    {
+      "area": "Search",
+      "current": "Client-side fetch on every filter change",
+      "target": "Optional: debounce 300ms; consider server search for SEO"
+    },
+    {
+      "area": "Images",
+      "current": "No image URLs in mock/DB sample",
+      "target": "Use next/image when product images are added"
+    },
+    {
+      "area": "Bundle",
+      "current": "Framer Motion, Radix, React Query included",
+      "target": "Acceptable for MVP; consider lazy load for chat/outfit builder if needed"
+    }
+  ]
+}

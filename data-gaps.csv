@@ -1,0 +1,11 @@
+Table,Expected,Actual,Gap,Priority,Notes
+mens_fashion_items,128743,Run in Supabase,Unknown until import,Critical,Import via scripts/import_data.py if 0
+keyword_hindi,128743,Run SQL,Unknown,Critical,SELECT COUNT(*) WHERE keyword_hindi IS NOT NULL
+hex_color_enhanced,~117000,Run SQL,Unknown,Medium,App fallback: getHexForItem(color_family)
+color_palette,50+,0 or empty,High if used,Low,Schema exists; app does not query yet
+styling_rules,N/A,0 or empty,N/A,Low,Schema exists; app does not query
+occasion_guide,N/A,0 or empty,N/A,Low,Static content in code
+body_type_hacks,N/A,0 or empty,N/A,Low,Data on mens_fashion_items.body_type_hack used
+fabric_guide,N/A,0 or empty,N/A,Low,Schema exists; app does not query
+saved_outfits,N/A,Missing table,N/A,High,Required for Save outfit feature
+user_profiles,N/A,Optional,Optional,Medium,Required for persisting profile preferences

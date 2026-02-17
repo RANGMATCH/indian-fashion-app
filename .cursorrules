@@ -1,0 +1,6 @@
+# RangMatch – Cursor / Cloud Agent rules
+- Project: Next.js 14, TypeScript, Supabase, Tailwind. Indian men's fashion app (RangMatch).
+- Use same env as local: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY (set in Cloud Agent Secrets).
+- Key code: app/, lib/, components/, types/fashion.ts. DB: mens_fashion_items + other tables per supabase_schema_complete.sql.
+- Follow existing patterns (React Query, Supabase client). Do not commit .env.local or real secrets.
+- Full context: .cursor/cloud-agent-context.md. Setup: CLOUD_AGENT_SETUP.md.

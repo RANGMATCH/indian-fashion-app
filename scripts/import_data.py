@@ -1,24 +1,41 @@
 #!/usr/bin/env python3
 """
 Supabase CSV Import Script - Indian Men's Fashion Database
-Imports mens_fashion_master_FINAL.csv into mens_fashion_items table.
-Batch insert for 128K+ rows. Run from project root.
+Imports CSV into mens_fashion_items table. Supports large files (e.g. 200 MB).
+Usage: python scripts/import_data.py [path/to/your.csv]
+       Or put file as mens_fashion_master_FINAL.csv in project root.
 """
 
 import pandas as pd
 from supabase import create_client, Client
 import json
 import os
+import sys
 from tqdm import tqdm
 import time
 
-# ============ CONFIGURATION - UPDATE THESE ============
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://xxxxx.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGci...")
-# CSV path: from project root, or use absolute path
-CSV_FILE = os.path.join(os.path.dirname(__file__), "..", "mens_fashion_master_FINAL.csv")
+# Load .env.local so we can use NEXT_PUBLIC_SUPABASE_* from project
+def load_env():
+    env_path = os.path.join(os.path.dirname(__file__), "..", ".env.local")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ[k.strip()] = v.strip().strip('"').strip("'")
+load_env()
+
+# ============ CONFIGURATION ============
+SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL", "https://xxxxx.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY", "eyJhbGci...")
+# CSV: 1) command-line arg, 2) env CSV_FILE, 3) default file in project
+if len(sys.argv) > 1:
+    CSV_FILE = os.path.abspath(sys.argv[1])
+else:
+    CSV_FILE = os.environ.get("CSV_FILE") or os.path.join(os.path.dirname(__file__), "..", "mens_fashion_master_FINAL.csv")
 BATCH_SIZE = 500
-# =====================================================
+# =======================================
 
 def clean_value(val):
     """Convert NaN, NIL, empty to None for PostgreSQL."""
@@ -128,29 +145,29 @@ def main():
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     print("Connected.")
 
-    print(f"Loading {csv_path}...")
-    df = pd.read_csv(csv_path, low_memory=False, encoding="utf-8")
-    total_rows = len(df)
-    print(f"Loaded {total_rows:,} rows.")
-
+    # Chunked read for large files (e.g. 200 MB) - saves memory
+    CHUNK_ROWS = 50_000
+    print(f"Reading CSV in chunks (max {CHUNK_ROWS:,} rows per chunk): {csv_path}")
     success_count = 0
     error_count = 0
     errors = []
 
-    for i in tqdm(range(0, total_rows, BATCH_SIZE), desc="Importing"):
-        batch = df.iloc[i : i + BATCH_SIZE]
-        records = [row_to_record(batch.iloc[j]) for j in range(len(batch))]
+    for chunk in tqdm(pd.read_csv(csv_path, low_memory=False, encoding="utf-8", chunksize=CHUNK_ROWS), desc="Chunks"):
+        total_in_chunk = len(chunk)
+        for i in range(0, total_in_chunk, BATCH_SIZE):
+            batch = chunk.iloc[i : i + BATCH_SIZE]
+            records = [row_to_record(batch.iloc[j]) for j in range(len(batch))]
+            try:
+                supabase.table("mens_fashion_items").insert(records).execute()
+                success_count += len(records)
+                time.sleep(0.05)
+            except Exception as e:
+                error_count += len(records)
+                errors.append({"error": str(e)})
+                tqdm.write(f"Error: {e}")
+                continue
 
-        try:
-            supabase.table("mens_fashion_items").insert(records).execute()
-            success_count += len(records)
-            time.sleep(0.1)
-        except Exception as e:
-            error_count += len(records)
-            errors.append({"batch_start": i, "batch_end": min(i + BATCH_SIZE, total_rows), "error": str(e)})
-            tqdm.write(f"Error batch {i}-{min(i + BATCH_SIZE, total_rows)}: {e}")
-            continue
-
+    total_rows = success_count + error_count
     print("\n" + "=" * 60)
     print("IMPORT SUMMARY")
     print("=" * 60)
@@ -160,7 +177,8 @@ def main():
         print(f"Rate:    {100 * success_count / total_rows:.1f}%")
     if errors:
         for err in errors[:5]:
-            print(f"  Batch {err['batch_start']}-{err['batch_end']}: {err['error']}")
+            msg = err.get("error", str(err))
+            print(f"  Error: {msg}")
     print("=" * 60)
 
     # Quick verify

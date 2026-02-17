@@ -31,6 +31,7 @@ export async function GET() {
       connected: true,
       count: count ?? 0,
       message: count && count > 0 ? "Data mil raha hai." : "Connected. Table empty - run import_data.py to load CSV.",
+      note: "This endpoint is the source of truth for production. Repo has no .env.local by design; production uses Vercel Environment Variables.",
     });
   } catch (err) {
     return NextResponse.json({

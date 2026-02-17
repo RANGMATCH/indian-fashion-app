@@ -1,0 +1,12 @@
+{
+  "description": "Copy this structure when adding Secrets in Cloud Agent setup. Use same values as .env.local (do not commit real values).",
+  "secrets": {
+    "NEXT_PUBLIC_SUPABASE_URL": "<your Supabase URL>",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "<your anon key>",
+    "OPENAI_API_KEY": "<optional>",
+    "NEXT_PUBLIC_APP_URL": "<optional>",
+    "SUPABASE_DB_URL": "<optional, for DB scripts only>"
+  },
+  "install_command": "npm install",
+  "startup_command": "npm run dev"
+}

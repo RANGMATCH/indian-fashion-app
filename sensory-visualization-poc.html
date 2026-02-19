@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sensory Visualization - Fashion AI PoC</title>
+  <style>
+    :root {
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --ink: #151b2f;
+      --muted: #6a7288;
+      --accent: #1f3a5f;
+      --line: #d8deea;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background: radial-gradient(circle at top, #fbfcff 0%, #eef2f8 62%, #e8edf5 100%);
+      display: grid;
+      place-items: center;
+      padding: 28px 14px;
+    }
+
+    .app-shell {
+      width: min(980px, 100%);
+      background: #ffffff;
+      border: 1px solid #dbe2ef;
+      border-radius: 24px;
+      box-shadow:
+        0 20px 40px rgba(17, 25, 40, 0.08),
+        0 2px 6px rgba(17, 25, 40, 0.05);
+      padding: 26px;
+    }
+
+    .header {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+      letter-spacing: 0.01em;
+      font-weight: 650;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .search-wrap {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .search-input {
+      flex: 1;
+      height: 52px;
+      border-radius: 13px;
+      border: 1px solid #cdd5e4;
+      background: #ffffff;
+      font-size: 1rem;
+      padding: 0 15px;
+      color: #1f2436;
+      outline: none;
+      transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+
+    .search-input::placeholder {
+      color: #8a92a7;
+    }
+
+    .search-input:focus {
+      border-color: #8ea5cb;
+      box-shadow: 0 0 0 4px rgba(77, 108, 168, 0.15);
+    }
+
+    .search-input.input-error {
+      border-color: #d26f6f;
+      box-shadow: 0 0 0 4px rgba(210, 111, 111, 0.16);
+    }
+
+    .search-btn {
+      height: 52px;
+      min-width: 130px;
+      border-radius: 13px;
+      border: none;
+      background: linear-gradient(160deg, #2e4f7f, #1f3a5f);
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 0.97rem;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: transform 150ms ease, filter 180ms ease;
+    }
+
+    .search-btn:hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    .search-btn:active {
+      transform: translateY(0);
+    }
+
+    .canvas-card {
+      margin-top: 12px;
+      border-radius: 18px;
+      border: 1px solid #dde4f1;
+      background: linear-gradient(180deg, #f9fbff 0%, #f0f4fb 100%);
+      padding: 14px 8px 18px;
+      overflow: hidden;
+    }
+
+    #shirtSvg {
+      width: 100%;
+      height: auto;
+      display: block;
+      --shirt-color: #ffffff;
+    }
+
+    .shirt-fabric-piece {
+      fill: var(--shirt-color);
+      transition: fill 560ms ease;
+    }
+
+    .fabric-layer {
+      opacity: 0;
+      transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .fabric-layer.is-active {
+      opacity: 1;
+    }
+
+    .material-hint {
+      margin: 8px auto 4px;
+      width: fit-content;
+      min-height: 24px;
+      color: #47506a;
+      font-size: 0.92rem;
+      letter-spacing: 0.01em;
+      transition: color 220ms ease;
+    }
+
+    .combo-section {
+      margin: 12px auto 0;
+      max-width: 660px;
+      opacity: 0;
+      transform: translateY(10px);
+      max-height: 0;
+      overflow: hidden;
+      transition:
+        opacity 520ms ease,
+        transform 520ms ease,
+        max-height 520ms ease;
+    }
+
+    .combo-section.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 120px;
+    }
+
+    .combo-btn {
+      width: 100%;
+      border: 1px solid #b9c8e3;
+      background: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #233252;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: border-color 170ms ease, transform 150ms ease;
+    }
+
+    .combo-btn:hover {
+      border-color: #8da8d4;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 700px) {
+      .app-shell {
+        padding: 18px 14px;
+      }
+
+      .search-wrap {
+        flex-direction: column;
+      }
+
+      .search-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <section class="header">
+      <h1 class="title">Sensory Visualization Engine</h1>
+      <p class="subtitle">
+        Search with intent. The shirt updates not only in color, but in physically simulated fabric feel.
+      </p>
+      <div class="search-wrap">
+        <input
+          id="searchInput"
+          class="search-input"
+          type="text"
+          placeholder="Try: blue shirt for wedding in linen"
+          aria-label="Search fashion intent"
+        />
+        <button id="searchBtn" class="search-btn" type="button">Search</button>
+      </div>
+    </section>
+
+    <section class="canvas-card" aria-live="polite">
+      <svg id="shirtSvg" viewBox="0 0 900 860" role="img" aria-label="Men's full-sleeve shirt">
+        <defs>
+          <filter id="silkSatinFilter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.22" numOctaves="2" seed="9" result="microWrinkle" />
+            <feDisplacementMap in="SourceGraphic" in2="microWrinkle" scale="4.1" xChannelSelector="R" yChannelSelector="B" result="warpedFabric" />
+            <feColorMatrix in="warpedFabric" type="matrix"
+              values="1.08 0 0 0 0
+                      0 1.08 0 0 0
+                      0 0 1.1 0 0
+                      0 0 0 1 0" result="richTone" />
+            <feSpecularLighting in="SourceAlpha" surfaceScale="10" specularConstant="1.08" specularExponent="33" lighting-color="#ffffff" result="specularPass">
+              <fePointLight x="438" y="112" z="210" />
+            </feSpecularLighting>
+            <feComposite in="specularPass" in2="SourceAlpha" operator="in" result="specMask" />
+            <feGaussianBlur in="specMask" stdDeviation="0.75" result="softSpec" />
+            <feBlend in="richTone" in2="softSpec" mode="screen" result="silkLit" />
+            <feBlend in="silkLit" in2="softSpec" mode="screen" />
+          </filter>
+
+          <filter id="linenCottonFilter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.88 1.86" numOctaves="3" seed="17" stitchTiles="stitch" result="weaveNoise" />
+            <feColorMatrix in="weaveNoise" type="matrix"
+              values="1.65 0 0 0 -0.32
+                      0 1.65 0 0 -0.32
+                      0 0 1.65 0 -0.32
+                      0 0 0 1 0" result="weaveContrast" />
+            <feDisplacementMap in="SourceGraphic" in2="weaveContrast" scale="2.8" xChannelSelector="R" yChannelSelector="G" result="roughSurface" />
+            <feTurbulence type="turbulence" baseFrequency="0.026 0.43" numOctaves="2" seed="5" result="slubNoise" />
+            <feColorMatrix in="slubNoise" type="saturate" values="0" result="slubGray" />
+            <feComponentTransfer in="slubGray" result="slubThreads">
+              <feFuncA type="table" tableValues="0 0.18 0.45 0.78 1" />
+            </feComponentTransfer>
+            <feBlend in="roughSurface" in2="slubThreads" mode="multiply" result="wovenFabric" />
+            <feDiffuseLighting in="weaveContrast" surfaceScale="1.2" diffuseConstant="0.85" lighting-color="#e4e8ef" result="matteShade">
+              <feDistantLight azimuth="232" elevation="49" />
+            </feDiffuseLighting>
+            <feComposite in="matteShade" in2="SourceAlpha" operator="in" result="matteMask" />
+            <feBlend in="wovenFabric" in2="matteMask" mode="multiply" result="matteFabric" />
+            <feColorMatrix in="matteFabric" type="matrix"
+              values="0.96 0 0 0 0
+                      0 0.96 0 0 0
+                      0 0 0.96 0 0
+                      0 0 0 1 0" />
+          </filter>
+
+          <linearGradient id="depthGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2" />
+            <stop offset="30%" stop-color="#7786a8" stop-opacity="0.08" />
+            <stop offset="100%" stop-color="#1b2540" stop-opacity="0.18" />
+          </linearGradient>
+
+          <radialGradient id="centerGlow" cx="50%" cy="24%" r="58%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+          </radialGradient>
+
+          <g id="shirtFabricPieces">
+            <path class="shirt-fabric-piece" d="M316 180 L584 180 L632 338 L611 716 L289 716 L268 338 Z" />
+            <path class="shirt-fabric-piece" d="M268 338 L141 280 L76 600 L206 642 L292 426 Z" />
+            <path class="shirt-fabric-piece" d="M632 338 L759 280 L824 600 L694 642 L608 426 Z" />
+            <path class="shirt-fabric-piece" d="M371 180 L449 262 L400 282 L322 195 Z" />
+            <path class="shirt-fabric-piece" d="M529 180 L451 262 L500 282 L578 195 Z" />
+            <rect class="shirt-fabric-piece" x="438" y="262" width="24" height="454" rx="8" />
+            <path class="shirt-fabric-piece" d="M108 568 L210 607 L194 668 L89 628 Z" />
+            <path class="shirt-fabric-piece" d="M690 607 L792 568 L811 628 L706 668 Z" />
+          </g>
+        </defs>
+
+        <ellipse cx="450" cy="776" rx="292" ry="34" fill="#172035" opacity="0.14" />
+
+        <g id="shirtGroup">
+          <g id="fabricNone" class="fabric-layer is-active">
+            <use href="#shirtFabricPieces"></use>
+          </g>
+          <g id="fabricSilk" class="fabric-layer" filter="url(#silkSatinFilter)">
+            <use href="#shirtFabricPieces"></use>
+          </g>
+          <g id="fabricLinen" class="fabric-layer" filter="url(#linenCottonFilter)">
+            <use href="#shirtFabricPieces"></use>
+          </g>
+
+          <g opacity="0.65" style="mix-blend-mode:multiply;">
+            <path d="M316 180 L584 180 L632 338 L611 716 L289 716 L268 338 Z" fill="url(#depthGradient)" />
+            <path d="M268 338 L141 280 L76 600 L206 642 L292 426 Z" fill="url(#depthGradient)" opacity="0.52" />
+            <path d="M632 338 L759 280 L824 600 L694 642 L608 426 Z" fill="url(#depthGradient)" opacity="0.52" />
+          </g>
+          <path d="M318 182 L583 182 L567 345 L331 345 Z" fill="url(#centerGlow)" opacity="0.56" />
+
+          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M316 180 L584 180 L632 338 L611 716 L289 716 L268 338 Z" stroke="#3c4c68" stroke-opacity="0.65" stroke-width="3" />
+            <path d="M268 338 L141 280 L76 600 L206 642 L292 426 Z" stroke="#3c4c68" stroke-opacity="0.56" stroke-width="3" />
+            <path d="M632 338 L759 280 L824 600 L694 642 L608 426 Z" stroke="#3c4c68" stroke-opacity="0.56" stroke-width="3" />
+            <path d="M108 568 L210 607 L194 668 L89 628 Z" stroke="#3a4762" stroke-opacity="0.6" stroke-width="3" />
+            <path d="M690 607 L792 568 L811 628 L706 668 Z" stroke="#3a4762" stroke-opacity="0.6" stroke-width="3" />
+            <path d="M371 180 L449 262 L400 282 L322 195 Z" stroke="#3a4762" stroke-opacity="0.62" stroke-width="2.8" />
+            <path d="M529 180 L451 262 L500 282 L578 195 Z" stroke="#3a4762" stroke-opacity="0.62" stroke-width="2.8" />
+            <line x1="450" y1="262" x2="450" y2="716" stroke="#52607c" stroke-opacity="0.42" stroke-width="2.2" />
+            <path d="M315 327 Q451 383 585 327" stroke="#51617f" stroke-opacity="0.28" stroke-width="2.4" />
+            <path d="M237 424 Q198 490 170 566" stroke="#50607d" stroke-opacity="0.28" stroke-width="2.2" />
+            <path d="M663 424 Q702 490 730 566" stroke="#50607d" stroke-opacity="0.28" stroke-width="2.2" />
+          </g>
+
+          <g fill="#e8edf6" stroke="#9ba6bb" stroke-width="1.4" opacity="0.95">
+            <circle cx="450" cy="304" r="5.3" />
+            <circle cx="450" cy="358" r="5.3" />
+            <circle cx="450" cy="412" r="5.3" />
+            <circle cx="450" cy="466" r="5.3" />
+            <circle cx="450" cy="520" r="5.3" />
+            <circle cx="450" cy="574" r="5.3" />
+            <circle cx="450" cy="628" r="5.3" />
+          </g>
+        </g>
+      </svg>
+
+      <p id="materialHint" class="material-hint">
+        Default state: white shirt with neutral finish.
+      </p>
+
+      <div id="comboSection" class="combo-section" aria-hidden="true">
+        <button type="button" class="combo-btn">Show Perfect Combination (Pants &amp; Shoes)</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      const comboSection = document.getElementById("comboSection");
+      const materialHint = document.getElementById("materialHint");
+      const shirtSvg = document.getElementById("shirtSvg");
+
+      const layers = {
+        none: document.getElementById("fabricNone"),
+        silk: document.getElementById("fabricSilk"),
+        linen: document.getElementById("fabricLinen")
+      };
+
+      function activateLayer(layerName) {
+        Object.keys(layers).forEach(function (key) {
+          layers[key].classList.toggle("is-active", key === layerName);
+        });
+      }
+
+      function setColor(hexColor) {
+        shirtSvg.style.setProperty("--shirt-color", hexColor);
+      }
+
+      function showCombinationCta() {
+        comboSection.classList.add("is-visible");
+        comboSection.setAttribute("aria-hidden", "false");
+      }
+
+      function classifyIntent(query) {
+        const normalized = query.toLowerCase();
+        const hasBlue = /\bblue\b/.test(normalized);
+        const hasWedding = /\bwedding\b/.test(normalized);
+        const hasLinen = /\blinen\b/.test(normalized);
+
+        const color = hasBlue ? "#1f3a5f" : "#ffffff";
+        let material = "none";
+        let hint = "Neutral fabric finish applied.";
+
+        if (hasWedding && hasLinen) {
+          material = "linen";
+          hint = "Wedding + linen intent detected: matte woven linen/cotton texture applied.";
+        } else if (hasWedding && !hasLinen) {
+          material = "silk";
+          hint = "Wedding intent detected: premium glossy silk/satin reflection applied.";
+        }
+
+        if (hasBlue) {
+          hint = "Navy blue applied. " + hint;
+        }
+
+        return { color, material, hint };
+      }
+
+      function onSearch() {
+        const query = searchInput.value.trim();
+
+        if (!query) {
+          searchInput.classList.add("input-error");
+          materialHint.textContent = "Type a search query to activate fabric intelligence.";
+          searchInput.focus();
+          setTimeout(function () {
+            searchInput.classList.remove("input-error");
+          }, 900);
+          return;
+        }
+
+        const result = classifyIntent(query);
+        setColor(result.color);
+        activateLayer(result.material);
+        materialHint.textContent = result.hint;
+        showCombinationCta();
+      }
+
+      searchBtn.addEventListener("click", onSearch);
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          onSearch();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

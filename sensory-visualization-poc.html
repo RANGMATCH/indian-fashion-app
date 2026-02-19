@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sensory Visualization - Fashion AI PoC</title>
+  <title>Sensory Visualization - Photorealistic Blend PoC</title>
   <style>
     :root {
-      --bg: #f6f8fb;
-      --card: #ffffff;
-      --ink: #151b2f;
-      --muted: #6a7288;
-      --accent: #1f3a5f;
-      --line: #d8deea;
+      --bg: #edf2f8;
+      --ink: #12192d;
+      --muted: #5f6880;
+      --line: #d8e0ee;
+      --panel: #ffffff;
+      --shirt-color: #ffffff;
+      --blend-strength: 0;
     }
 
     * {
@@ -21,89 +22,83 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
       color: var(--ink);
-      background: radial-gradient(circle at top, #fbfcff 0%, #eef2f8 62%, #e8edf5 100%);
+      background:
+        radial-gradient(1400px 650px at 50% -180px, #ffffff 15%, #eef3fb 60%, #e8eef7 100%);
       display: grid;
       place-items: center;
-      padding: 28px 14px;
+      padding: 22px 14px;
     }
 
-    .app-shell {
+    .app {
       width: min(980px, 100%);
-      background: #ffffff;
-      border: 1px solid #dbe2ef;
+      background: var(--panel);
+      border: 1px solid var(--line);
       border-radius: 24px;
       box-shadow:
-        0 20px 40px rgba(17, 25, 40, 0.08),
-        0 2px 6px rgba(17, 25, 40, 0.05);
-      padding: 26px;
-    }
-
-    .header {
-      display: grid;
-      gap: 14px;
-      margin-bottom: 16px;
+        0 28px 62px rgba(17, 29, 56, 0.09),
+        0 3px 9px rgba(17, 29, 56, 0.05);
+      padding: 24px;
     }
 
     .title {
       margin: 0;
-      font-size: clamp(1.15rem, 1.8vw, 1.45rem);
-      letter-spacing: 0.01em;
+      font-size: clamp(1.15rem, 2vw, 1.42rem);
       font-weight: 650;
+      letter-spacing: 0.01em;
     }
 
     .subtitle {
-      margin: 0;
+      margin: 10px 0 0;
       color: var(--muted);
       font-size: 0.95rem;
     }
 
-    .search-wrap {
+    .search-row {
+      margin-top: 16px;
       display: flex;
       gap: 10px;
-      width: 100%;
     }
 
     .search-input {
       flex: 1;
       height: 52px;
       border-radius: 13px;
-      border: 1px solid #cdd5e4;
-      background: #ffffff;
+      border: 1px solid #c9d3e3;
       font-size: 1rem;
+      color: #1d2538;
       padding: 0 15px;
-      color: #1f2436;
       outline: none;
-      transition: border-color 200ms ease, box-shadow 200ms ease;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
     }
 
     .search-input::placeholder {
-      color: #8a92a7;
+      color: #8a93aa;
     }
 
     .search-input:focus {
-      border-color: #8ea5cb;
-      box-shadow: 0 0 0 4px rgba(77, 108, 168, 0.15);
+      border-color: #8ea8d0;
+      box-shadow: 0 0 0 4px rgba(82, 120, 187, 0.14);
     }
 
     .search-input.input-error {
-      border-color: #d26f6f;
-      box-shadow: 0 0 0 4px rgba(210, 111, 111, 0.16);
+      border-color: #d66d6d;
+      box-shadow: 0 0 0 4px rgba(214, 109, 109, 0.16);
     }
 
     .search-btn {
-      height: 52px;
-      min-width: 130px;
-      border-radius: 13px;
       border: none;
-      background: linear-gradient(160deg, #2e4f7f, #1f3a5f);
-      color: #ffffff;
-      font-weight: 600;
+      min-width: 132px;
+      height: 52px;
+      border-radius: 13px;
       font-size: 0.97rem;
+      font-weight: 600;
       letter-spacing: 0.01em;
+      color: #ffffff;
       cursor: pointer;
-      transition: transform 150ms ease, filter 180ms ease;
+      background: linear-gradient(160deg, #304f7f, #1f3a5f);
+      transition: transform 140ms ease, filter 180ms ease;
     }
 
     .search-btn:hover {
@@ -115,60 +110,158 @@
       transform: translateY(0);
     }
 
-    .canvas-card {
-      margin-top: 12px;
+    .viewer {
+      margin-top: 16px;
+      border: 1px solid #dce4f2;
       border-radius: 18px;
-      border: 1px solid #dde4f1;
-      background: linear-gradient(180deg, #f9fbff 0%, #f0f4fb 100%);
-      padding: 14px 8px 18px;
+      background:
+        radial-gradient(540px 280px at 50% 8%, #ffffff 12%, #f4f7fd 65%, #eef3fb 100%);
+      padding: 18px 14px 16px;
       overflow: hidden;
     }
 
-    #shirtSvg {
+    .shirt-stage {
+      width: min(590px, 100%);
+      margin: 0 auto;
+      position: relative;
+      border-radius: 20px;
+      isolation: isolate;
+      background:
+        radial-gradient(380px 240px at 50% 12%, rgba(255, 255, 255, 0.85) 0%, rgba(243, 247, 253, 0.6) 62%, rgba(237, 242, 250, 0.34) 100%);
+    }
+
+    .shirt-stack {
+      position: relative;
       width: 100%;
-      height: auto;
-      display: block;
-      --shirt-color: #ffffff;
+      aspect-ratio: 1 / 1;
     }
 
-    .shirt-fabric-piece {
-      fill: var(--shirt-color);
-      transition: fill 560ms ease;
+    .shirt-base {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      z-index: 1;
+      filter:
+        drop-shadow(0 20px 22px rgba(24, 35, 58, 0.16))
+        drop-shadow(0 3px 5px rgba(24, 35, 58, 0.08));
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
-    .fabric-layer {
+    .shirt-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: calc(var(--blend-strength));
+      transition: opacity 540ms cubic-bezier(0.22, 1, 0.36, 1), background-color 500ms ease;
+      background-color: var(--shirt-color);
+      mix-blend-mode: multiply;
+
+      -webkit-mask-image: var(--shirt-mask);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: var(--shirt-mask);
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
+    }
+
+    .texture-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
       opacity: 0;
-      transition: opacity 700ms cubic-bezier(0.22, 1, 0.36, 1);
+      transition: opacity 580ms cubic-bezier(0.22, 1, 0.36, 1);
+      background-repeat: repeat;
+      background-size: 180px 180px;
+
+      -webkit-mask-image: var(--shirt-mask);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: var(--shirt-mask);
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
     }
 
-    .fabric-layer.is-active {
+    .texture-overlay.active {
       opacity: 1;
     }
 
-    .material-hint {
-      margin: 8px auto 4px;
-      width: fit-content;
-      min-height: 24px;
-      color: #47506a;
-      font-size: 0.92rem;
-      letter-spacing: 0.01em;
-      transition: color 220ms ease;
+    .texture-silk {
+      background-image:
+        radial-gradient(220px 140px at 22% 16%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0) 80%),
+        radial-gradient(260px 170px at 75% 32%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 82%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.24) 8%, rgba(255, 255, 255, 0.03) 38%, rgba(255, 255, 255, 0.26) 63%, rgba(255, 255, 255, 0.05) 92%),
+        url("https://www.transparenttextures.com/patterns/brushed-alum.png");
+      background-size: 100% 100%, 100% 100%, 100% 100%, 190px 190px;
+      background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+      mix-blend-mode: soft-light;
+      filter: saturate(1.1) contrast(1.04);
     }
 
-    .combo-section {
+    .texture-linen {
+      background-image:
+        linear-gradient(0deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.11)),
+        url("https://www.transparenttextures.com/patterns/black-linen.png"),
+        url("https://www.transparenttextures.com/patterns/fabric-of-squares.png");
+      background-size: 100% 100%, 150px 150px, 230px 230px;
+      background-repeat: no-repeat, repeat, repeat;
+      mix-blend-mode: multiply;
+      filter: contrast(1.2) saturate(0.76) brightness(0.92);
+    }
+
+    .photographic-grain {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      opacity: 0.2;
+      mix-blend-mode: overlay;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 42%),
+        radial-gradient(circle at 81% 20%, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0) 44%),
+        radial-gradient(circle at 45% 82%, rgba(13, 20, 33, 0.15), rgba(13, 20, 33, 0) 48%),
+        url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+      background-size: 100% 100%, 100% 100%, 100% 100%, 170px 170px;
+
+      -webkit-mask-image: var(--shirt-mask);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: var(--shirt-mask);
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
+    }
+
+    .status-text {
+      margin: 12px 0 0;
+      text-align: center;
+      min-height: 24px;
+      font-size: 0.93rem;
+      color: #4c5672;
+      letter-spacing: 0.01em;
+    }
+
+    .combo-wrap {
       margin: 12px auto 0;
       max-width: 660px;
       opacity: 0;
       transform: translateY(10px);
       max-height: 0;
       overflow: hidden;
-      transition:
-        opacity 520ms ease,
-        transform 520ms ease,
-        max-height 520ms ease;
+      transition: opacity 520ms ease, transform 520ms ease, max-height 520ms ease;
     }
 
-    .combo-section.is-visible {
+    .combo-wrap.visible {
       opacity: 1;
       transform: translateY(0);
       max-height: 120px;
@@ -176,29 +269,28 @@
 
     .combo-btn {
       width: 100%;
-      border: 1px solid #b9c8e3;
-      background: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
+      border: 1px solid #b7c7e4;
       border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%);
+      color: #223151;
       padding: 14px 16px;
-      color: #233252;
-      font-size: 0.95rem;
+      font-size: 0.96rem;
       font-weight: 600;
-      letter-spacing: 0.01em;
       cursor: pointer;
       transition: border-color 170ms ease, transform 150ms ease;
     }
 
     .combo-btn:hover {
-      border-color: #8da8d4;
+      border-color: #87a2d1;
       transform: translateY(-1px);
     }
 
     @media (max-width: 700px) {
-      .app-shell {
+      .app {
         padding: 18px 14px;
       }
 
-      .search-wrap {
+      .search-row {
         flex-direction: column;
       }
 
@@ -209,144 +301,43 @@
   </style>
 </head>
 <body>
-  <main class="app-shell">
-    <section class="header">
-      <h1 class="title">Sensory Visualization Engine</h1>
-      <p class="subtitle">
-        Search with intent. The shirt updates not only in color, but in physically simulated fabric feel.
-      </p>
-      <div class="search-wrap">
-        <input
-          id="searchInput"
-          class="search-input"
-          type="text"
-          placeholder="Try: blue shirt for wedding in linen"
-          aria-label="Search fashion intent"
-        />
-        <button id="searchBtn" class="search-btn" type="button">Search</button>
+  <main class="app">
+    <h1 class="title">Sensory Visualization Engine</h1>
+    <p class="subtitle">
+      Photorealistic blend-mode rendering: color and material are composited onto a real shirt photograph.
+    </p>
+
+    <div class="search-row">
+      <input
+        id="searchInput"
+        class="search-input"
+        type="text"
+        placeholder="Try: blue shirt for wedding in linen"
+        aria-label="Search fashion intent"
+      />
+      <button id="searchBtn" class="search-btn" type="button">Search</button>
+    </div>
+
+    <section class="viewer" aria-live="polite">
+      <div class="shirt-stage">
+        <div class="shirt-stack" id="shirtStack">
+          <img
+            class="shirt-base"
+            id="shirtBase"
+            src="https://pngimg.com/uploads/dress_shirt/dress_shirt_PNG8117.png"
+            alt="Photorealistic plain white men's shirt"
+            crossorigin="anonymous"
+          />
+          <div class="shirt-overlay" id="colorOverlay"></div>
+          <div class="texture-overlay texture-silk" id="silkTexture"></div>
+          <div class="texture-overlay texture-linen" id="linenTexture"></div>
+          <div class="photographic-grain"></div>
+        </div>
       </div>
-    </section>
 
-    <section class="canvas-card" aria-live="polite">
-      <svg id="shirtSvg" viewBox="0 0 900 860" role="img" aria-label="Men's full-sleeve shirt">
-        <defs>
-          <filter id="silkSatinFilter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.22" numOctaves="2" seed="9" result="microWrinkle" />
-            <feDisplacementMap in="SourceGraphic" in2="microWrinkle" scale="4.1" xChannelSelector="R" yChannelSelector="B" result="warpedFabric" />
-            <feColorMatrix in="warpedFabric" type="matrix"
-              values="1.08 0 0 0 0
-                      0 1.08 0 0 0
-                      0 0 1.1 0 0
-                      0 0 0 1 0" result="richTone" />
-            <feSpecularLighting in="SourceAlpha" surfaceScale="10" specularConstant="1.08" specularExponent="33" lighting-color="#ffffff" result="specularPass">
-              <fePointLight x="438" y="112" z="210" />
-            </feSpecularLighting>
-            <feComposite in="specularPass" in2="SourceAlpha" operator="in" result="specMask" />
-            <feGaussianBlur in="specMask" stdDeviation="0.75" result="softSpec" />
-            <feBlend in="richTone" in2="softSpec" mode="screen" result="silkLit" />
-            <feBlend in="silkLit" in2="softSpec" mode="screen" />
-          </filter>
+      <p id="statusText" class="status-text">Default state: white shirt with neutral finish.</p>
 
-          <filter id="linenCottonFilter" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-            <feTurbulence type="fractalNoise" baseFrequency="0.88 1.86" numOctaves="3" seed="17" stitchTiles="stitch" result="weaveNoise" />
-            <feColorMatrix in="weaveNoise" type="matrix"
-              values="1.65 0 0 0 -0.32
-                      0 1.65 0 0 -0.32
-                      0 0 1.65 0 -0.32
-                      0 0 0 1 0" result="weaveContrast" />
-            <feDisplacementMap in="SourceGraphic" in2="weaveContrast" scale="2.8" xChannelSelector="R" yChannelSelector="G" result="roughSurface" />
-            <feTurbulence type="turbulence" baseFrequency="0.026 0.43" numOctaves="2" seed="5" result="slubNoise" />
-            <feColorMatrix in="slubNoise" type="saturate" values="0" result="slubGray" />
-            <feComponentTransfer in="slubGray" result="slubThreads">
-              <feFuncA type="table" tableValues="0 0.18 0.45 0.78 1" />
-            </feComponentTransfer>
-            <feBlend in="roughSurface" in2="slubThreads" mode="multiply" result="wovenFabric" />
-            <feDiffuseLighting in="weaveContrast" surfaceScale="1.2" diffuseConstant="0.85" lighting-color="#e4e8ef" result="matteShade">
-              <feDistantLight azimuth="232" elevation="49" />
-            </feDiffuseLighting>
-            <feComposite in="matteShade" in2="SourceAlpha" operator="in" result="matteMask" />
-            <feBlend in="wovenFabric" in2="matteMask" mode="multiply" result="matteFabric" />
-            <feColorMatrix in="matteFabric" type="matrix"
-              values="0.96 0 0 0 0
-                      0 0.96 0 0 0
-                      0 0 0.96 0 0
-                      0 0 0 1 0" />
-          </filter>
-
-          <linearGradient id="depthGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2" />
-            <stop offset="30%" stop-color="#7786a8" stop-opacity="0.08" />
-            <stop offset="100%" stop-color="#1b2540" stop-opacity="0.18" />
-          </linearGradient>
-
-          <radialGradient id="centerGlow" cx="50%" cy="24%" r="58%">
-            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
-            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
-          </radialGradient>
-
-          <g id="shirtFabricPieces">
-            <path class="shirt-fabric-piece" d="M316 180 L584 180 L632 338 L611 716 L289 716 L268 338 Z" />
-            <path class="shirt-fabric-piece" d="M268 338 L141 280 L76 600 L206 642 L292 426 Z" />
-            <path class="shirt-fabric-piece" d="M632 338 L759 280 L824 600 L694 642 L608 426 Z" />
-            <path class="shirt-fabric-piece" d="M371 180 L449 262 L400 282 L322 195 Z" />
-            <path class="shirt-fabric-piece" d="M529 180 L451 262 L500 282 L578 195 Z" />
-            <rect class="shirt-fabric-piece" x="438" y="262" width="24" height="454" rx="8" />
-            <path class="shirt-fabric-piece" d="M108 568 L210 607 L194 668 L89 628 Z" />
-            <path class="shirt-fabric-piece" d="M690 607 L792 568 L811 628 L706 668 Z" />
-          </g>
-        </defs>
-
-        <ellipse cx="450" cy="776" rx="292" ry="34" fill="#172035" opacity="0.14" />
-
-        <g id="shirtGroup">
-          <g id="fabricNone" class="fabric-layer is-active">
-            <use href="#shirtFabricPieces"></use>
-          </g>
-          <g id="fabricSilk" class="fabric-layer" filter="url(#silkSatinFilter)">
-            <use href="#shirtFabricPieces"></use>
-          </g>
-          <g id="fabricLinen" class="fabric-layer" filter="url(#linenCottonFilter)">
-            <use href="#shirtFabricPieces"></use>
-          </g>
-
-          <g opacity="0.65" style="mix-blend-mode:multiply;">
-            <path d="M316 180 L584 180 L632 338 L611 716 L289 716 L268 338 Z" fill="url(#depthGradient)" />
-            <path d="M268 338 L141 280 L76 600 L206 642 L292 426 Z" fill="url(#depthGradient)" opacity="0.52" />
-            <path d="M632 338 L759 280 L824 600 L694 642 L608 426 Z" fill="url(#depthGradient)" opacity="0.52" />
-          </g>
-          <path d="M318 182 L583 182 L567 345 L331 345 Z" fill="url(#centerGlow)" opacity="0.56" />
-
-          <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M316 180 L584 180 L632 338 L611 716 L289 716 L268 338 Z" stroke="#3c4c68" stroke-opacity="0.65" stroke-width="3" />
-            <path d="M268 338 L141 280 L76 600 L206 642 L292 426 Z" stroke="#3c4c68" stroke-opacity="0.56" stroke-width="3" />
-            <path d="M632 338 L759 280 L824 600 L694 642 L608 426 Z" stroke="#3c4c68" stroke-opacity="0.56" stroke-width="3" />
-            <path d="M108 568 L210 607 L194 668 L89 628 Z" stroke="#3a4762" stroke-opacity="0.6" stroke-width="3" />
-            <path d="M690 607 L792 568 L811 628 L706 668 Z" stroke="#3a4762" stroke-opacity="0.6" stroke-width="3" />
-            <path d="M371 180 L449 262 L400 282 L322 195 Z" stroke="#3a4762" stroke-opacity="0.62" stroke-width="2.8" />
-            <path d="M529 180 L451 262 L500 282 L578 195 Z" stroke="#3a4762" stroke-opacity="0.62" stroke-width="2.8" />
-            <line x1="450" y1="262" x2="450" y2="716" stroke="#52607c" stroke-opacity="0.42" stroke-width="2.2" />
-            <path d="M315 327 Q451 383 585 327" stroke="#51617f" stroke-opacity="0.28" stroke-width="2.4" />
-            <path d="M237 424 Q198 490 170 566" stroke="#50607d" stroke-opacity="0.28" stroke-width="2.2" />
-            <path d="M663 424 Q702 490 730 566" stroke="#50607d" stroke-opacity="0.28" stroke-width="2.2" />
-          </g>
-
-          <g fill="#e8edf6" stroke="#9ba6bb" stroke-width="1.4" opacity="0.95">
-            <circle cx="450" cy="304" r="5.3" />
-            <circle cx="450" cy="358" r="5.3" />
-            <circle cx="450" cy="412" r="5.3" />
-            <circle cx="450" cy="466" r="5.3" />
-            <circle cx="450" cy="520" r="5.3" />
-            <circle cx="450" cy="574" r="5.3" />
-            <circle cx="450" cy="628" r="5.3" />
-          </g>
-        </g>
-      </svg>
-
-      <p id="materialHint" class="material-hint">
-        Default state: white shirt with neutral finish.
-      </p>
-
-      <div id="comboSection" class="combo-section" aria-hidden="true">
+      <div id="comboWrap" class="combo-wrap" aria-hidden="true">
         <button type="button" class="combo-btn">Show Perfect Combination (Pants &amp; Shoes)</button>
       </div>
     </section>
@@ -354,56 +345,66 @@
 
   <script>
     (function () {
+      const SHIRT_MASK_URL = 'url("https://pngimg.com/uploads/dress_shirt/dress_shirt_PNG8117.png")';
+      document.documentElement.style.setProperty("--shirt-mask", SHIRT_MASK_URL);
+
       const searchInput = document.getElementById("searchInput");
       const searchBtn = document.getElementById("searchBtn");
-      const comboSection = document.getElementById("comboSection");
-      const materialHint = document.getElementById("materialHint");
-      const shirtSvg = document.getElementById("shirtSvg");
+      const colorOverlay = document.getElementById("colorOverlay");
+      const silkTexture = document.getElementById("silkTexture");
+      const linenTexture = document.getElementById("linenTexture");
+      const comboWrap = document.getElementById("comboWrap");
+      const statusText = document.getElementById("statusText");
 
-      const layers = {
-        none: document.getElementById("fabricNone"),
-        silk: document.getElementById("fabricSilk"),
-        linen: document.getElementById("fabricLinen")
-      };
-
-      function activateLayer(layerName) {
-        Object.keys(layers).forEach(function (key) {
-          layers[key].classList.toggle("is-active", key === layerName);
-        });
+      function setColor(colorHex, hasColorIntent) {
+        colorOverlay.style.setProperty("--shirt-color", colorHex);
+        colorOverlay.style.setProperty("--blend-strength", hasColorIntent ? "1" : "0");
       }
 
-      function setColor(hexColor) {
-        shirtSvg.style.setProperty("--shirt-color", hexColor);
+      function setTexture(material) {
+        silkTexture.classList.toggle("active", material === "silk");
+        linenTexture.classList.toggle("active", material === "linen");
       }
 
-      function showCombinationCta() {
-        comboSection.classList.add("is-visible");
-        comboSection.setAttribute("aria-hidden", "false");
+      function showCombinationButton() {
+        comboWrap.classList.add("visible");
+        comboWrap.setAttribute("aria-hidden", "false");
       }
 
-      function classifyIntent(query) {
-        const normalized = query.toLowerCase();
-        const hasBlue = /\bblue\b/.test(normalized);
-        const hasWedding = /\bwedding\b/.test(normalized);
-        const hasLinen = /\blinen\b/.test(normalized);
+      function classifyIntent(rawQuery) {
+        const query = rawQuery.toLowerCase();
+        const hasBlue = /\bblue\b/.test(query);
+        const hasWedding = /\bwedding\b/.test(query);
+        const hasLinen = /\blinen\b/.test(query);
 
-        const color = hasBlue ? "#1f3a5f" : "#ffffff";
         let material = "none";
-        let hint = "Neutral fabric finish applied.";
-
         if (hasWedding && hasLinen) {
           material = "linen";
-          hint = "Wedding + linen intent detected: matte woven linen/cotton texture applied.";
         } else if (hasWedding && !hasLinen) {
           material = "silk";
-          hint = "Wedding intent detected: premium glossy silk/satin reflection applied.";
         }
 
-        if (hasBlue) {
-          hint = "Navy blue applied. " + hint;
-        }
+        const color = hasBlue ? "#1f3a5f" : "#ffffff";
+        return { hasBlue, material, color };
+      }
 
-        return { color, material, hint };
+      function buildStatusText(state) {
+        if (state.hasBlue && state.material === "silk") {
+          return "Navy blue tone applied with wedding-ready silk/satin gloss and smooth reflective finish.";
+        }
+        if (state.hasBlue && state.material === "linen") {
+          return "Navy blue tone applied with matte woven linen texture for tactile, breathable realism.";
+        }
+        if (state.hasBlue) {
+          return "Navy blue tone applied with neutral fabric finish.";
+        }
+        if (state.material === "silk") {
+          return "Wedding intent detected: premium glossy silk/satin texture added.";
+        }
+        if (state.material === "linen") {
+          return "Wedding + linen intent detected: matte woven linen texture added.";
+        }
+        return "Neutral finish applied on white base shirt.";
       }
 
       function onSearch() {
@@ -411,7 +412,7 @@
 
         if (!query) {
           searchInput.classList.add("input-error");
-          materialHint.textContent = "Type a search query to activate fabric intelligence.";
+          statusText.textContent = "Type a search query to activate the sensory visualization engine.";
           searchInput.focus();
           setTimeout(function () {
             searchInput.classList.remove("input-error");
@@ -419,11 +420,11 @@
           return;
         }
 
-        const result = classifyIntent(query);
-        setColor(result.color);
-        activateLayer(result.material);
-        materialHint.textContent = result.hint;
-        showCombinationCta();
+        const state = classifyIntent(query);
+        setColor(state.color, state.hasBlue);
+        setTexture(state.material);
+        statusText.textContent = buildStatusText(state);
+        showCombinationButton();
       }
 
       searchBtn.addEventListener("click", onSearch);

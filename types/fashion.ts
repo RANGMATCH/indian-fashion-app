@@ -80,3 +80,36 @@ export const OCCASIONS = [
   "Festival",
   "Gym/Sports",
 ] as const;
+
+/** Feel-good preview image (outfit combo or UI asset) from Supabase Storage */
+export interface PreviewImage {
+  id?: string;
+  prompt_id: number;
+  name: string;
+  url?: string | null;
+  storage_path?: string | null;
+  tags?: string[];
+  fabric?: string | null;
+  color?: string | null;
+  type: string;
+  combo_type?: string | null;
+  rules_description?: string | null;
+  rules?: string | null;
+  preview_type?: "outfit" | "ui_element" | "hero" | "card";
+  feel_good_factor?: ("confidence_boost" | "cultural_pride" | "excitement" | "freedom" | "exploration")[];
+  occasion?: string[];
+  skin_tone?: string[];
+  sort_order?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Prompt for AI image generation (Kaggle Flux etc.) */
+export interface PreviewImagePrompt {
+  id: number;
+  prompt: string;
+  tags: string[];
+  fabric: string;
+  type: string;
+  rules: string;
+}

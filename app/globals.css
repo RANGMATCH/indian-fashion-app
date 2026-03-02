@@ -1,54 +1,37 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --primary-navy: #000080;
-  --primary-maroon: #800000;
-  --primary-orange: #E85D04;
-  --neutral-cream: #FFFBF5;
-  --neutral-black: #1A1A1A;
-  --accent-olive: #556b2f;
-  --accent-gold: #ffd700;
+  --maroon: #7b1c2b;
+  --white: #ffffff;
+  --offwhite: #fafafa;
+  --surface: #f5f0eb;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 body {
-  @apply bg-neutral-cream text-neutral-black antialiased;
+  font-family: "Inter", "Noto Sans Devanagari", sans-serif;
+  background: var(--offwhite);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
 }
 
-.shadow-card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-.shadow-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-/* Hindi / Devanagari support */
-.font-hindi {
-  font-family: var(--font-noto-devanagari), sans-serif;
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Shimmer for skeletons */
-@keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
-}
-
-.shimmer {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 0%,
-    #e8e8e8 50%,
-    #f0f0f0 100%
-  );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite linear;
-}
-
-/* Touch-friendly minimum */
-@media (pointer: coarse) {
-  button, a, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
+.touch-feedback {
+  -webkit-tap-highlight-color: rgba(123, 28, 43, 0.12);
 }

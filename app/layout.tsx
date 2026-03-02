@@ -1,22 +1,23 @@
-import type { Metadata } from "next";
-import { Inter, Noto_Sans_Devanagari } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { Providers } from "@/components/Providers";
-import { Toaster } from "sonner";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-});
-
-const notoDevanagari = Noto_Sans_Devanagari({
-  subsets: ["devanagari"],
-  variable: "--font-noto-devanagari",
-});
 
 export const metadata: Metadata = {
-  title: "RangMatch | Indian Men's Fashion Intelligence",
-  description: "Find perfect outfits by skin tone, occasion & body type. Hindi & English support.",
+  title: "RangMatch - rangmaich | AI Fashion Color Advisor",
+  description: "Indian men ke liye AI-powered fashion color matching app.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "RangMatch",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#7B1C2B",
 };
 
 export default function RootLayout({
@@ -25,10 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="hi" className={`${inter.variable} ${notoDevanagari.variable}`}>
-      <body className="min-h-screen flex flex-col">
-        <Providers>{children}</Providers>
-        <Toaster position="bottom-center" richColors closeButton />
+    <html lang="hi">
+      <head>
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      </head>
+      <body className="bg-offwhite min-h-screen overscroll-none">
+        <div className="max-w-md mx-auto min-h-screen relative">{children}</div>
       </body>
     </html>
   );

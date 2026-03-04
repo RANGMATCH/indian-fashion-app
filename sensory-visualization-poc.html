@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sensory Visualization - Photorealistic Blend PoC</title>
+  <style>
+    :root {
+      --bg: #edf2f8;
+      --ink: #12192d;
+      --muted: #5f6880;
+      --line: #d8e0ee;
+      --panel: #ffffff;
+      --shirt-color: #ffffff;
+      --blend-strength: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1400px 650px at 50% -180px, #ffffff 15%, #eef3fb 60%, #e8eef7 100%);
+      display: grid;
+      place-items: center;
+      padding: 22px 14px;
+    }
+
+    .app {
+      width: min(980px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow:
+        0 28px 62px rgba(17, 29, 56, 0.09),
+        0 3px 9px rgba(17, 29, 56, 0.05);
+      padding: 24px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: clamp(1.15rem, 2vw, 1.42rem);
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .search-row {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-input {
+      flex: 1;
+      height: 52px;
+      border-radius: 13px;
+      border: 1px solid #c9d3e3;
+      font-size: 1rem;
+      color: #1d2538;
+      padding: 0 15px;
+      outline: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+    }
+
+    .search-input::placeholder {
+      color: #8a93aa;
+    }
+
+    .search-input:focus {
+      border-color: #8ea8d0;
+      box-shadow: 0 0 0 4px rgba(82, 120, 187, 0.14);
+    }
+
+    .search-input.input-error {
+      border-color: #d66d6d;
+      box-shadow: 0 0 0 4px rgba(214, 109, 109, 0.16);
+    }
+
+    .search-btn {
+      border: none;
+      min-width: 132px;
+      height: 52px;
+      border-radius: 13px;
+      font-size: 0.97rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: #ffffff;
+      cursor: pointer;
+      background: linear-gradient(160deg, #304f7f, #1f3a5f);
+      transition: transform 140ms ease, filter 180ms ease;
+    }
+
+    .search-btn:hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    .search-btn:active {
+      transform: translateY(0);
+    }
+
+    .viewer {
+      margin-top: 16px;
+      border: 1px solid #dce4f2;
+      border-radius: 18px;
+      background:
+        radial-gradient(540px 280px at 50% 8%, #ffffff 12%, #f4f7fd 65%, #eef3fb 100%);
+      padding: 18px 14px 16px;
+      overflow: hidden;
+    }
+
+    .shirt-stage {
+      width: min(590px, 100%);
+      margin: 0 auto;
+      position: relative;
+      border-radius: 20px;
+      isolation: isolate;
+      background:
+        radial-gradient(380px 240px at 50% 12%, rgba(255, 255, 255, 0.85) 0%, rgba(243, 247, 253, 0.6) 62%, rgba(237, 242, 250, 0.34) 100%);
+    }
+
+    .shirt-stack {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+    }
+
+    .shirt-base {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      z-index: 1;
+      filter:
+        drop-shadow(0 20px 22px rgba(24, 35, 58, 0.16))
+        drop-shadow(0 3px 5px rgba(24, 35, 58, 0.08));
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .shirt-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: calc(var(--blend-strength));
+      transition: opacity 540ms cubic-bezier(0.22, 1, 0.36, 1), background-color 500ms ease;
+      background-color: var(--shirt-color);
+      mix-blend-mode: multiply;
+
+      -webkit-mask-image: var(--shirt-mask);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: var(--shirt-mask);
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
+    }
+
+    .texture-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 580ms cubic-bezier(0.22, 1, 0.36, 1);
+      background-repeat: repeat;
+      background-size: 180px 180px;
+
+      -webkit-mask-image: var(--shirt-mask);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: var(--shirt-mask);
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
+    }
+
+    .texture-overlay.active {
+      opacity: 1;
+    }
+
+    .texture-silk {
+      background-image:
+        radial-gradient(220px 140px at 22% 16%, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0) 80%),
+        radial-gradient(260px 170px at 75% 32%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 82%),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.24) 8%, rgba(255, 255, 255, 0.03) 38%, rgba(255, 255, 255, 0.26) 63%, rgba(255, 255, 255, 0.05) 92%),
+        url("https://www.transparenttextures.com/patterns/brushed-alum.png");
+      background-size: 100% 100%, 100% 100%, 100% 100%, 190px 190px;
+      background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+      mix-blend-mode: soft-light;
+      filter: saturate(1.1) contrast(1.04);
+    }
+
+    .texture-linen {
+      background-image:
+        linear-gradient(0deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.11)),
+        url("https://www.transparenttextures.com/patterns/black-linen.png"),
+        url("https://www.transparenttextures.com/patterns/fabric-of-squares.png");
+      background-size: 100% 100%, 150px 150px, 230px 230px;
+      background-repeat: no-repeat, repeat, repeat;
+      mix-blend-mode: multiply;
+      filter: contrast(1.2) saturate(0.76) brightness(0.92);
+    }
+
+    .photographic-grain {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      opacity: 0.2;
+      mix-blend-mode: overlay;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 42%),
+        radial-gradient(circle at 81% 20%, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0) 44%),
+        radial-gradient(circle at 45% 82%, rgba(13, 20, 33, 0.15), rgba(13, 20, 33, 0) 48%),
+        url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+      background-size: 100% 100%, 100% 100%, 100% 100%, 170px 170px;
+
+      -webkit-mask-image: var(--shirt-mask);
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+      mask-image: var(--shirt-mask);
+      mask-size: contain;
+      mask-repeat: no-repeat;
+      mask-position: center;
+    }
+
+    .status-text {
+      margin: 12px 0 0;
+      text-align: center;
+      min-height: 24px;
+      font-size: 0.93rem;
+      color: #4c5672;
+      letter-spacing: 0.01em;
+    }
+
+    .combo-wrap {
+      margin: 12px auto 0;
+      max-width: 660px;
+      opacity: 0;
+      transform: translateY(10px);
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 520ms ease, transform 520ms ease, max-height 520ms ease;
+    }
+
+    .combo-wrap.visible {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 120px;
+    }
+
+    .combo-btn {
+      width: 100%;
+      border: 1px solid #b7c7e4;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #f3f7ff 100%);
+      color: #223151;
+      padding: 14px 16px;
+      font-size: 0.96rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: border-color 170ms ease, transform 150ms ease;
+    }
+
+    .combo-btn:hover {
+      border-color: #87a2d1;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 700px) {
+      .app {
+        padding: 18px 14px;
+      }
+
+      .search-row {
+        flex-direction: column;
+      }
+
+      .search-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1 class="title">Sensory Visualization Engine</h1>
+    <p class="subtitle">
+      Photorealistic blend-mode rendering: color and material are composited onto a real shirt photograph.
+    </p>
+
+    <div class="search-row">
+      <input
+        id="searchInput"
+        class="search-input"
+        type="text"
+        placeholder="Try: blue shirt for wedding in linen"
+        aria-label="Search fashion intent"
+      />
+      <button id="searchBtn" class="search-btn" type="button">Search</button>
+    </div>
+
+    <section class="viewer" aria-live="polite">
+      <div class="shirt-stage">
+        <div class="shirt-stack" id="shirtStack">
+          <img
+            class="shirt-base"
+            id="shirtBase"
+            src="https://pngimg.com/uploads/dress_shirt/dress_shirt_PNG8117.png"
+            alt="Photorealistic plain white men's shirt"
+            crossorigin="anonymous"
+          />
+          <div class="shirt-overlay" id="colorOverlay"></div>
+          <div class="texture-overlay texture-silk" id="silkTexture"></div>
+          <div class="texture-overlay texture-linen" id="linenTexture"></div>
+          <div class="photographic-grain"></div>
+        </div>
+      </div>
+
+      <p id="statusText" class="status-text">Default state: white shirt with neutral finish.</p>
+
+      <div id="comboWrap" class="combo-wrap" aria-hidden="true">
+        <button type="button" class="combo-btn">Show Perfect Combination (Pants &amp; Shoes)</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const SHIRT_MASK_URL = 'url("https://pngimg.com/uploads/dress_shirt/dress_shirt_PNG8117.png")';
+      document.documentElement.style.setProperty("--shirt-mask", SHIRT_MASK_URL);
+
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      const colorOverlay = document.getElementById("colorOverlay");
+      const silkTexture = document.getElementById("silkTexture");
+      const linenTexture = document.getElementById("linenTexture");
+      const comboWrap = document.getElementById("comboWrap");
+      const statusText = document.getElementById("statusText");
+
+      function setColor(colorHex, hasColorIntent) {
+        colorOverlay.style.setProperty("--shirt-color", colorHex);
+        colorOverlay.style.setProperty("--blend-strength", hasColorIntent ? "1" : "0");
+      }
+
+      function setTexture(material) {
+        silkTexture.classList.toggle("active", material === "silk");
+        linenTexture.classList.toggle("active", material === "linen");
+      }
+
+      function showCombinationButton() {
+        comboWrap.classList.add("visible");
+        comboWrap.setAttribute("aria-hidden", "false");
+      }
+
+      function classifyIntent(rawQuery) {
+        const query = rawQuery.toLowerCase();
+        const hasBlue = /\bblue\b/.test(query);
+        const hasWedding = /\bwedding\b/.test(query);
+        const hasLinen = /\blinen\b/.test(query);
+
+        let material = "none";
+        if (hasWedding && hasLinen) {
+          material = "linen";
+        } else if (hasWedding && !hasLinen) {
+          material = "silk";
+        }
+
+        const color = hasBlue ? "#1f3a5f" : "#ffffff";
+        return { hasBlue, material, color };
+      }
+
+      function buildStatusText(state) {
+        if (state.hasBlue && state.material === "silk") {
+          return "Navy blue tone applied with wedding-ready silk/satin gloss and smooth reflective finish.";
+        }
+        if (state.hasBlue && state.material === "linen") {
+          return "Navy blue tone applied with matte woven linen texture for tactile, breathable realism.";
+        }
+        if (state.hasBlue) {
+          return "Navy blue tone applied with neutral fabric finish.";
+        }
+        if (state.material === "silk") {
+          return "Wedding intent detected: premium glossy silk/satin texture added.";
+        }
+        if (state.material === "linen") {
+          return "Wedding + linen intent detected: matte woven linen texture added.";
+        }
+        return "Neutral finish applied on white base shirt.";
+      }
+
+      function onSearch() {
+        const query = searchInput.value.trim();
+
+        if (!query) {
+          searchInput.classList.add("input-error");
+          statusText.textContent = "Type a search query to activate the sensory visualization engine.";
+          searchInput.focus();
+          setTimeout(function () {
+            searchInput.classList.remove("input-error");
+          }, 900);
+          return;
+        }
+
+        const state = classifyIntent(query);
+        setColor(state.color, state.hasBlue);
+        setTexture(state.material);
+        statusText.textContent = buildStatusText(state);
+        showCombinationButton();
+      }
+
+      searchBtn.addEventListener("click", onSearch);
+      searchInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          onSearch();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

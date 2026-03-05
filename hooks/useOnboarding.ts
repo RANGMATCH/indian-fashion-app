@@ -4,10 +4,12 @@ import { useEffect, useState } from "react";
 
 export type SkinTone = "fair" | "medium" | "wheatish" | "dusky" | "deep";
 export type Occasion = "formal" | "casual" | "wedding" | "party" | "date" | "office" | "festival" | "gym";
+export type Weather = "summer" | "rainy" | "winter" | "humid";
 
 export interface UserPreferences {
   skinTone: SkinTone | null;
   occasion: Occasion | null;
+  weather: Weather | null;
   onboardingComplete: boolean;
 }
 
@@ -17,6 +19,7 @@ export function useOnboarding() {
   const [prefs, setPrefs] = useState<UserPreferences>({
     skinTone: null,
     occasion: null,
+    weather: null,
     onboardingComplete: false,
   });
 
@@ -29,9 +32,13 @@ export function useOnboarding() {
     }
   }, []);
 
-  const savePrefs = (updates: Partial<UserPreferences>) => {
+  const setSkinTone = (skinTone: SkinTone) =>
     setPrefs((prev) => {
-      const next = { ...prev, ...updates };
+      const next = {
+        ...prev,
+        skinTone,
+        onboardingComplete: Boolean(skinTone && prev.occasion && prev.weather),
+      };
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch {
@@ -39,15 +46,42 @@ export function useOnboarding() {
       }
       return next;
     });
-  };
 
-  const setSkinTone = (skinTone: SkinTone) => savePrefs({ skinTone });
-  const setOccasion = (occasion: Occasion) => savePrefs({ occasion, onboardingComplete: true });
+  const setOccasion = (occasion: Occasion) =>
+    setPrefs((prev) => {
+      const next = {
+        ...prev,
+        occasion,
+        onboardingComplete: Boolean(prev.skinTone && occasion && prev.weather),
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+
+  const setWeather = (weather: Weather) =>
+    setPrefs((prev) => {
+      const next = {
+        ...prev,
+        weather,
+        onboardingComplete: Boolean(prev.skinTone && prev.occasion && weather),
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
 
   const resetOnboarding = () => {
     const initial: UserPreferences = {
       skinTone: null,
       occasion: null,
+      weather: null,
       onboardingComplete: false,
     };
     setPrefs(initial);
@@ -58,5 +92,5 @@ export function useOnboarding() {
     }
   };
 
-  return { prefs, setSkinTone, setOccasion, resetOnboarding };
+  return { prefs, setSkinTone, setOccasion, setWeather, resetOnboarding };
 }

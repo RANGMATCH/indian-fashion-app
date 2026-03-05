@@ -44,8 +44,9 @@ export default function BestColorsPage() {
         occasion: prefs.occasion ?? "casual",
       });
     },
-    skinTone: prefs.skinTone ?? "wheatish",
-    occasion: prefs.occasion ?? "casual",
+    skinTone: prefs.skinTone ?? null,
+    occasion: prefs.occasion ?? null,
+    weather: prefs.weather ?? null,
   });
 
   useEffect(() => {
@@ -56,31 +57,21 @@ export default function BestColorsPage() {
     );
     const startIndex = preferred ? TRENDING_COMBOS.findIndex((combo) => combo.id === preferred.id) : 0;
     setIndex(startIndex);
+    chat.setComboIndex(startIndex);
     setAllColors((preferred ?? TRENDING_COMBOS[0]).colors);
-  }, [prefs.occasion, prefs.skinTone, setAllColors]);
+  }, [chat, prefs.occasion, prefs.skinTone, setAllColors]);
 
   const currentCombo = TRENDING_COMBOS[index];
 
-  const applyAndAnnounce = useCallback(
-    (nextIndex: number) => {
-      const combo = TRENDING_COMBOS[nextIndex];
-      setIndex(nextIndex);
-      setAllColors(combo.colors);
-      chat.pushAdvisorMessage(
-        `${combo.chatIntro} ${(combo.likes / 1000).toFixed(1)}k logon ne pasand kiya. Pasand aaye toh save karo.`,
-        ["Save karo", "Next dekho", "Back dekho"]
-      );
-    },
-    [chat, setAllColors]
-  );
-
   const handleNext = useCallback(() => {
-    applyAndAnnounce((index + 1) % TRENDING_COMBOS.length);
-  }, [applyAndAnnounce, index]);
+    const next = chat.navigateCombo("next", TRENDING_COMBOS);
+    setIndex(next);
+  }, [chat]);
 
   const handlePrev = useCallback(() => {
-    applyAndAnnounce((index - 1 + TRENDING_COMBOS.length) % TRENDING_COMBOS.length);
-  }, [applyAndAnnounce, index]);
+    const prev = chat.navigateCombo("prev", TRENDING_COMBOS);
+    setIndex(prev);
+  }, [chat]);
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-offwhite">
@@ -90,6 +81,9 @@ export default function BestColorsPage() {
           <p className="text-xs text-white/80">
             {index + 1}/{TRENDING_COMBOS.length} · {currentCombo.nameHi} · {(currentCombo.likes / 1000).toFixed(1)}k likes
           </p>
+          {index === 0 ? (
+            <span className="mt-1 inline-flex rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">👑 BEST MATCH</span>
+          ) : null}
         </div>
         <Link href="/" className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">
           Home

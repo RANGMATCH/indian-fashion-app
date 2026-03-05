@@ -1,0 +1,15 @@
+.surfaceCard {
+  border: 1px solid #f4d8dd;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 14px rgba(123, 28, 43, 0.08);
+}
+
+.chip {
+  border-radius: 9999px;
+  border: 1px solid #e8b9c3;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #7b1c2b;
+  background: #fff7f8;
+}

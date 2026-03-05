@@ -37,8 +37,8 @@ export function HinglishChatAdvisor({ messages, isTyping, onUserInput, onNext, o
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-maroon-800 text-sm text-white">🤖</div>
           <div>
-            <p className="text-sm font-semibold text-maroon-900">RangMatch Advisor</p>
-            <p className="text-xs text-maroon-600">{isTyping ? "typing..." : "Online"}</p>
+            <p className="text-xs font-semibold text-maroon-900">RangMatch Advisor</p>
+            <p className="text-[11px] text-maroon-600">{isTyping ? "typing..." : "Online"}</p>
           </div>
         </div>
       </div>
@@ -47,10 +47,15 @@ export function HinglishChatAdvisor({ messages, isTyping, onUserInput, onNext, o
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === "assistant" ? "justify-start" : "justify-end"}`}>
             <div
-              className={`max-w-[90%] rounded-2xl px-3 py-2 text-sm ${
+              className={`max-w-[90%] rounded-2xl px-3 py-2 text-xs ${
                 msg.role === "assistant" ? "bg-maroon-50 text-maroon-900" : "bg-maroon-800 text-white"
               }`}
             >
+              {msg.role === "assistant" && msg.content.includes("BEST MATCH") ? (
+                <span className="mb-1 inline-flex min-h-[24px] items-center rounded-full bg-maroon-800 px-2 py-0.5 text-[10px] font-bold text-white">
+                  👑 BEST MATCH
+                </span>
+              ) : null}
               <p>{msg.content}</p>
               {msg.role === "assistant" && msg.quickReplies?.length ? (
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -59,7 +64,7 @@ export function HinglishChatAdvisor({ messages, isTyping, onUserInput, onNext, o
                       key={`${msg.id}-${reply}`}
                       type="button"
                       onClick={() => onUserInput(reply)}
-                      className="touch-feedback min-h-[44px] rounded-full border border-maroon-300 px-4 text-xs font-semibold text-maroon-800"
+                      className="touch-feedback min-h-[44px] rounded-full border border-maroon-300 px-4 text-[11px] font-semibold text-maroon-800"
                     >
                       {reply}
                     </button>
@@ -97,7 +102,7 @@ export function HinglishChatAdvisor({ messages, isTyping, onUserInput, onNext, o
       <form onSubmit={handleSubmit} className="flex gap-2 border-t border-maroon-100 px-3 py-2">
         <input
           ref={inputRef}
-          className="touch-feedback min-h-[44px] flex-1 rounded-full border border-maroon-200 px-3 text-sm outline-none focus:ring-2 focus:ring-maroon-300"
+          className="touch-feedback min-h-[44px] flex-1 rounded-full border border-maroon-200 px-3 text-xs outline-none focus:ring-2 focus:ring-maroon-300"
           placeholder="Message likhein..."
         />
         <button

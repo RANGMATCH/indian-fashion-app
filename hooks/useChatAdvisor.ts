@@ -2,10 +2,10 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { GarmentSlot } from "@/hooks/useRecolorEngine";
-import type { Occasion, SkinTone } from "@/hooks/useOnboarding";
+import type { Occasion, SkinTone, Weather } from "@/hooks/useOnboarding";
 import { HINGLISH_RESPONSES } from "@/lib/chat/hinglishResponses";
 import { BEHAVIOR_RESPONSES, detectBehavior } from "@/lib/chat/psychologyEngine";
-import { TRENDING_COMBOS } from "@/lib/data/trendingCombos";
+import { TRENDING_COMBOS, type TrendingCombo } from "@/lib/data/trendingCombos";
 
 export type ChatRole = "user" | "assistant";
 
@@ -21,8 +21,9 @@ interface UseChatAdvisorOptions {
   onColorChange: (slot: GarmentSlot, hex: string) => void;
   onSlotFocus: (slot: GarmentSlot) => void;
   onSave: () => void;
-  skinTone: SkinTone;
-  occasion: Occasion;
+  skinTone: SkinTone | null;
+  occasion: Occasion | null;
+  weather: Weather | null;
 }
 
 const quick = (...items: string[]) => items.slice(0, 3);
@@ -44,11 +45,17 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
     () => ({
       id: `m-${Date.now()}`,
       role: "assistant",
-      content: `Namaste! Step 1/3: shirt color set karein. Aapka skin tone ${options.skinTone} hai, toh smart combo se start karte hain — tap karo.`,
-      quickReplies: quick("Shirt light karo", "Shirt dark karo", "Best match dikhao"),
+      content:
+        options.skinTone && options.occasion && options.weather
+          ? `Namaste! Step 1/3: shirt color set karein. Aapka skin tone ${options.skinTone} hai, weather ${options.weather} hai — smart combo start karein, tap karo.`
+          : "Namaste! Guidance start karne se pehle skin tone, occasion aur weather compulsory hai. Pehle onboarding complete karo, phir exact combo दूंगा — continue karo.",
+      quickReplies:
+        options.skinTone && options.occasion && options.weather
+          ? quick("Shirt light karo", "Shirt dark karo", "Best match dikhao")
+          : quick("Onboarding kholo", "Skin tone set", "Occasion set"),
       createdAt: Date.now(),
     }),
-    [options.skinTone]
+    [options.occasion, options.skinTone, options.weather]
   );
 
   const [messages, setMessages] = useState<ChatMessage[]>([firstMessage]);
@@ -111,10 +118,10 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
   }, [respondWithTyping]);
 
   const navigateCombo = useCallback(
-    (direction: "next" | "prev") => {
-      const len = TRENDING_COMBOS.length;
+    (direction: "next" | "prev", combos: TrendingCombo[] = TRENDING_COMBOS) => {
+      const len = combos.length;
       comboIndexRef.current = direction === "next" ? (comboIndexRef.current + 1) % len : (comboIndexRef.current - 1 + len) % len;
-      const combo = TRENDING_COMBOS[comboIndexRef.current];
+      const combo = combos[comboIndexRef.current];
       options.onColorChange("shirt", combo.colors.shirt);
       options.onColorChange("trouser", combo.colors.trouser);
       options.onColorChange("shoes", combo.colors.shoes);
@@ -122,7 +129,11 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
 
       const social = `${(combo.likes / 1000).toFixed(1)}k logon ne pasand kiya`;
       const badge = comboIndexRef.current === 0 ? " 👑 BEST MATCH" : "";
-      respondWithTyping(`${combo.chatIntro}${badge} (${social}). Step 3/3: pasand ho toh save karo.`, quick("Save karo", "Next combo", "Shirt light karo"));
+      respondWithTyping(
+        `${combo.chatIntro}${badge} (${social}). Occasion ${options.occasion ?? "casual"} aur weather ${options.weather ?? "summer"} ke hisaab se tuned hai. Step 3/3: pasand ho toh save karo.`,
+        quick("Save karo", "Next combo", "Shirt light karo")
+      );
+      return comboIndexRef.current;
     },
     [options, respondWithTyping]
   );
@@ -149,6 +160,14 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
       behaviorRef.current.hasTyped = true;
       pushUser(text);
 
+      if (!options.skinTone || !options.occasion || !options.weather) {
+        respondWithTyping(
+          "Personal recommendation ke liye skin tone + occasion + weather compulsory hai. Pehle onboarding complete karo, phir main exact guide dunga — ab setup karo.",
+          quick("Onboarding kholo", "Skin tone set", "Weather set")
+        );
+        return;
+      }
+
       if (normalized.includes("save")) {
         options.onSave();
         respondWithTyping("Maza aa gaya! Outfit save trigger kar diya. Kal naya look banayenge — ab save confirm check karo.", quick("Next combo", "Office tip", "Wedding tip"));
@@ -156,12 +175,12 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
       }
 
       if (normalized.includes("next")) {
-        navigateCombo("next");
+        navigateCombo("next", TRENDING_COMBOS);
         return;
       }
 
       if (normalized.includes("back") || normalized.includes("prev")) {
-        navigateCombo("prev");
+        navigateCombo("prev", TRENDING_COMBOS);
         return;
       }
 
@@ -181,9 +200,17 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
         return;
       }
 
+      if (normalized.includes("weather")) {
+        respondWithTyping(
+          `${pick(HINGLISH_RESPONSES.weatherTips)} Ab weather ${options.weather} ke hisaab se combo apply karo.`,
+          quick("Best match", "Next combo", "Save karo")
+        );
+        return;
+      }
+
       if (normalized.includes("best")) {
         comboIndexRef.current = 0;
-        navigateCombo("next");
+        navigateCombo("next", TRENDING_COMBOS);
         return;
       }
 
@@ -200,6 +227,9 @@ export function useChatAdvisor(options: UseChatAdvisorOptions) {
     handleUserInput,
     onCanvasColorChange,
     navigateCombo,
+    setComboIndex: (index: number) => {
+      comboIndexRef.current = Math.max(0, index);
+    },
     handleNext: () => navigateCombo("next"),
     handlePrev: () => navigateCombo("prev"),
     pushAdvisorMessage,

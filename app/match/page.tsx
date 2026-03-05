@@ -45,8 +45,9 @@ export default function MatchPage() {
         occasion: prefs.occasion ?? "casual",
       });
     },
-    skinTone: prefs.skinTone ?? "wheatish",
-    occasion: prefs.occasion ?? "casual",
+    skinTone: prefs.skinTone ?? null,
+    occasion: prefs.occasion ?? null,
+    weather: prefs.weather ?? null,
   });
 
   const handleColorChange = useCallback(

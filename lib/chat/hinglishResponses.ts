@@ -15,6 +15,10 @@ export const HINGLISH_RESPONSES = {
     "Office ke liye navy + charcoal safe aur smart hai. Apply karo.",
     "Wedding ke liye maroon + ivory royal lagta hai. Isko try karo.",
   ],
+  weatherTips: [
+    "Garmi me breathable light shades best rehte hain. Light palette se pick karo.",
+    "Barish ke weather me darker bottom aur sturdy shoes practical rehte hain. Combo apply karo.",
+  ],
   saveNudges: [
     "Look pasand aaya ho toh abhi save karo, kal ka outfit tension free.",
     "Final ho gaye? Ek tap mein gallery save kar lo.",

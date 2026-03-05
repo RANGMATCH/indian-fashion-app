@@ -28,6 +28,16 @@ const config: Config = {
       boxShadow: {
         card: "0 2px 16px 0 rgba(123, 28, 43, 0.10)",
         glow: "0 0 24px 0 rgba(123, 28, 43, 0.25)",
+        "rangmatch-card": "0 4px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(123, 28, 43, 0.15)",
+      },
+      animation: {
+        "fashion-scroll": "fashion-scroll 25s linear infinite",
+      },
+      keyframes: {
+        "fashion-scroll": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
     },
   },

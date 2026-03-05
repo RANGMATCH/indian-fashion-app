@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import type { RefObject } from "react";
 import type { GarmentSlot } from "@/hooks/useRecolorEngine";
+import { useDynamicPalette } from "@/hooks/useDynamicPalette";
 import { RecolorEngine } from "@/components/rendering/RecolorEngine";
 import { calculateHarmonyScore } from "@/lib/canvas/recolor";
 import { GARMENT_ASSETS } from "@/lib/data/garmentAssets";
-import { GROUP_LABELS, INDIAN_FASHION_PALETTE, PALETTE_GROUPS, type PaletteGroup } from "@/lib/data/indianPalette";
+import { PALETTE_GROUPS, type PaletteGroup } from "@/lib/data/indianPalette";
 
 interface SplitScreenPreviewProps {
   colors: Record<GarmentSlot, string>;
@@ -37,22 +38,11 @@ export function SplitScreenPreview({ colors, onColorChange, onSlotClick, activeS
   const [group, setGroup] = useState<PaletteGroup>("classic");
   const [showGarmentPicker, setShowGarmentPicker] = useState(false);
   const [slotAssetKeys, setSlotAssetKeys] = useState<Record<GarmentSlot, string>>(DEFAULT_KEYS);
+  const { grouped, labels } = useDynamicPalette();
 
   const harmonyScore = useMemo(
     () => calculateHarmonyScore([colors.shirt, colors.trouser, colors.shoes, colors.belt]),
     [colors]
-  );
-
-  const groupedColors = useMemo(
-    () =>
-      PALETTE_GROUPS.reduce(
-        (acc, g) => {
-          acc[g] = INDIAN_FASHION_PALETTE.filter((swatch) => swatch.group === g);
-          return acc;
-        },
-        {} as Record<PaletteGroup, typeof INDIAN_FASHION_PALETTE>
-      ),
-    []
   );
 
   const garmentOptions = useMemo(() => {
@@ -127,13 +117,13 @@ export function SplitScreenPreview({ colors, onColorChange, onSlotClick, activeS
                 g === group ? "border-maroon-700 bg-maroon-800 text-white" : "border-maroon-200 text-maroon-800"
               }`}
             >
-              {GROUP_LABELS[g].en}
+              {labels[g].en} / {labels[g].hi}
             </button>
           ))}
         </div>
 
         <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-          {groupedColors[group].map((swatch) => (
+          {grouped[group].map((swatch) => (
             <button
               key={`${activeSlot}-${swatch.hex}`}
               type="button"

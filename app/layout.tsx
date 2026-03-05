@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "RangMatch - rangmaich | AI Fashion Color Advisor",
@@ -34,7 +35,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className="bg-offwhite min-h-screen overscroll-none">
-        <div className="max-w-md mx-auto min-h-screen relative">{children}</div>
+        <Providers>
+          <div className="max-w-md mx-auto min-h-screen relative">{children}</div>
+        </Providers>
       </body>
     </html>
   );

@@ -13,9 +13,9 @@ interface TriAssetCache {
 }
 
 interface RecolorEngineProps {
-  baseUrl: string;
-  maskUrl: string;
-  idmapUrl: string;
+  baseUrl: string | string[];
+  maskUrl: string | string[];
+  idmapUrl: string | string[];
   selectedColor: string;
   width?: number;
   height?: number;
@@ -24,22 +24,34 @@ interface RecolorEngineProps {
   canvasRef?: RefObject<HTMLCanvasElement>;
 }
 
-async function loadImageData(url: string, w: number, h: number): Promise<ImageData> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      const offscreen = document.createElement("canvas");
-      offscreen.width = w;
-      offscreen.height = h;
-      const ctx = offscreen.getContext("2d");
-      if (!ctx) return reject(new Error("No 2D context"));
-      ctx.drawImage(img, 0, 0, w, h);
-      resolve(ctx.getImageData(0, 0, w, h));
-    };
-    img.onerror = reject;
-    img.src = url;
-  });
+async function loadImageData(urlOrCandidates: string | string[], w: number, h: number): Promise<ImageData> {
+  const candidates = Array.isArray(urlOrCandidates) ? urlOrCandidates : [urlOrCandidates];
+  let lastError: unknown = null;
+
+  for (const url of candidates) {
+    try {
+      const imageData = await new Promise<ImageData>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const offscreen = document.createElement("canvas");
+          offscreen.width = w;
+          offscreen.height = h;
+          const ctx = offscreen.getContext("2d");
+          if (!ctx) return reject(new Error("No 2D context"));
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(ctx.getImageData(0, 0, w, h));
+        };
+        img.onerror = reject;
+        img.src = url;
+      });
+      return imageData;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  throw lastError ?? new Error("Could not load image from any source");
 }
 
 function createMockTriAsset(w: number, h: number): TriAssetCache {
@@ -100,7 +112,10 @@ export function RecolorEngine({
   const prevKeyRef = useRef<string>("");
 
   const loadAndCache = useCallback(async () => {
-    const key = `${baseUrl}||${maskUrl}||${idmapUrl}||${width}||${height}`;
+    const baseKey = Array.isArray(baseUrl) ? baseUrl.join("|") : baseUrl;
+    const maskKey = Array.isArray(maskUrl) ? maskUrl.join("|") : maskUrl;
+    const idmapKey = Array.isArray(idmapUrl) ? idmapUrl.join("|") : idmapUrl;
+    const key = `${baseKey}||${maskKey}||${idmapKey}||${width}||${height}`;
     if (key === prevKeyRef.current && cacheRef.current) return;
     prevKeyRef.current = key;
     cacheRef.current = null;
